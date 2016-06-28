@@ -2,7 +2,7 @@
 jdbc-datasource-template
 ========================
 
-A Java micro service template for proxying JDBC tables and queries as a JSON entity stream to a Sesam service instance.
+A Java micro service template for proxying JDBC tables and queries as a JSON entity stream to a Sesam service instance. Note that this service is currently experimental and breaking changes may happen at this stage in development.
 
 .. contents:: **Table of Contents**
 
@@ -20,13 +20,18 @@ The service takes a configuration file called config.json. There is one such fil
           "sources": {
               "everything1": {
                   "query": "select * from everything1",
-                  "since": "where t_timestamp > ${since}",
+                  "since": "where T_TIMESTAMP > ${since}",
                   "updated-column": "T_TIMESTAMP",
                   "primary-key": ["T_IDENTITY", "T_INT"]
               }
           }
       }
   }
+
+
+The configuration file is a JSON object which contains named systems, e.g. ``h2test``. Each system must have a ``jdbc-url`` property, and optionally ``username`` and ``password``. A system should have a ``sources`` property which is a JSON object that contains named sources, e.g. ``everything1``.
+
+Each source can have the ``query``, ``since``, ``updated-column`` and ``primary-key`` properties. ``updated-column`` and ``primary-key`` are both mandatory. By default the source id, e.g. ``everything1``, will be used to generate the query, but it can also be specified explicity. The ``since`` property is what should be added at the end of the ``query`` if the since request parameter is specified. ``primary-key`` is string or a list of strings that reference the primary keys of the source, and will be used to construct the ``_id`` property of the resulting entity. ``updated-column`` is the column to use to extract the ``_updated`` column.
 
 Demo: H2 database server
 ------------------------
