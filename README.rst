@@ -4,6 +4,8 @@ jdbc-datasource-template
 
 A Java micro service template for proxying JDBC tables and queries as a JSON entity stream to a Sesam service instance.
 
+.. contents:: Table of Contents
+
 The configuration file
 ----------------------
 
