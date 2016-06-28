@@ -28,8 +28,8 @@ The service takes a configuration file called config.json. There is one such fil
       }
   }
 
-Using the H2 database server
-----------------------------
+Demo: H2 database server
+------------------------
 
 Download the H2 database jar file:
 
