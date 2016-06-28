@@ -43,7 +43,7 @@ Start the H2 database server:
   TCP server running at tcp://10.4.100.12:9101 (others can connect)
   Web Console server running at http://10.4.100.12:8082 (only local connections)
 
-Next open the H2 Web Console. See actual link above. Enter the data provided below, but make sure that the IP is the one of your own computer.
+Next, open the H2 Web Console. See actual link above. Enter the data provided below, but make sure that the IP is the one of your own computer.
 
 .. image:: images/h2-login.png
     :width: 800px
@@ -57,7 +57,7 @@ Now you should be logged in and you should see the H2 Web Console:
     :align: center
     :alt: H2 database login page
 
-Next we'll create the ``everything1`` database table and add two rows to it. Paste the DDL/SQL statements below into the textarea and click the ``Run`` button.
+Next we'll create the ``everything1`` database table and add two rows to it. Paste the DDL and SQL statements below into the textarea and click the ``Run`` button.
 
 ::
 
@@ -232,3 +232,41 @@ The service listens on port 4567. JSON entities can be retrieved from 'http://lo
           "T_TIMESTAMP": "~t1973-07-15T20:45:39Z"
       }
   ]
+
+Docker
+------
+
+There is a Dockerfile provided in this project, so it is pretty easy to build a Docker image and run that instead.
+
+::
+
+  $ docker build -t yourid/yourimage:latest .
+  Sending build context to Docker daemon 7.296 MB
+  Step 1 : FROM java:8-jre-alpine
+   ---> cc37a2b2511d
+  Step 2 : ADD target/jdbc-datasource-template-1.0-SNAPSHOT.jar /srv/
+   ---> 81a049ca7fec
+  Removing intermediate container 017af0a71bf3
+  Step 3 : ENTRYPOINT java -jar /srv/jdbc-datasource-template-1.0-SNAPSHOT.jar
+   ---> Running in 377ce22a1b51
+   ---> a217126b691e
+  Removing intermediate container 377ce22a1b51
+  Step 4 : CMD /config.json
+   ---> Running in 85bf0700b65e
+   ---> 41cc605bd267
+  Removing intermediate container 85bf0700b65e
+  Successfully built 41cc605bd267
+  
+You can then start a Docker container using it like this:
+
+::
+
+  $ docker run -it -p 4567:4567 -v $PWD/config.json:/config.json yourid/your-image:latest
+  [main] INFO io.sesam.datasources.App - Loading configuration from: /config.json
+  [main] INFO com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Started.
+  [Thread-1] INFO org.eclipse.jetty.util.log - Logging initialized @839ms
+  [Thread-1] INFO spark.embeddedserver.jetty.EmbeddedJettyServer - == Spark has ignited ...
+  [Thread-1] INFO spark.embeddedserver.jetty.EmbeddedJettyServer - >> Listening on 0.0.0.0:4567
+  [Thread-1] INFO org.eclipse.jetty.server.Server - jetty-9.3.z-SNAPSHOT
+  [Thread-1] INFO org.eclipse.jetty.server.ServerConnector - Started ServerConnector@2f6503f1{HTTP/1.1,[http/1.1]}{0.0.0.0:4567}
+  [Thread-1] INFO org.eclipse.jetty.server.Server - Started @949ms
