@@ -23,8 +23,6 @@ import com.zaxxer.hikari.HikariDataSource;
 public class Mapper implements AutoCloseable {
 
     static Logger log = LoggerFactory.getLogger(Mapper.class);
-
-    private boolean closed;
     
     private Map<String,DataSystem> systems = new ConcurrentHashMap<>();
 
@@ -34,7 +32,6 @@ public class Mapper implements AutoCloseable {
 
     @Override
     public void close() {
-        this.closed = true;
         for (DataSystem system : this.systems.values()) {
             try {
                 system.close();
@@ -44,11 +41,14 @@ public class Mapper implements AutoCloseable {
         }
     }
 
+    public boolean isValidSource(String systemId, String sourceId) {
+        DataSystem system = this.systems.get(systemId);
+        return system != null && system.isValidSource(sourceId);
+    }
+
     public void writeEntities(JsonWriter jw, String systemId, String sourceId, String since) throws SQLException, IOException {
         DataSystem system = this.systems.get(systemId);
-        if (system == null || !system.isValidSource(sourceId)) {
-            throw new RuntimeException("Invalid system/source identifiers: " + systemId + "/" + sourceId);
-        }
+        assert system != null;
         jw.beginArray();
         system.writeEntities(jw, sourceId, since);
         jw.endArray();
@@ -74,12 +74,11 @@ public class Mapper implements AutoCloseable {
             throw new RuntimeException("Invalid configuration for system '" + systemId + "': " + systemElem); 
         }
         
-        // data source
+        // jdbc data source
         JsonObject systemObj = systemElem.getAsJsonObject();
-        String jdbcUrl = getStringValue(systemObj, "jdbc-url", null);
+        String jdbcUrl = getStringValue(systemObj, "jdbc-url");
         String username = getStringValue(systemObj, "username", null);
         String password = getStringValue(systemObj, "password", null);
-        System.out.println("" + username + "/" + password);
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
         if (username != null) {
@@ -90,7 +89,7 @@ public class Mapper implements AutoCloseable {
         }
         HikariDataSource ds = new HikariDataSource(config);
         
-        // table
+        // sources: tables and queries
         Map<String,Source> sources = new HashMap<>();
         if (systemObj.has("sources")) {
             JsonObject sourcesObj = systemObj.getAsJsonObject("sources");
@@ -108,14 +107,23 @@ public class Mapper implements AutoCloseable {
                 }
                 String updatedColumn = getStringValue(sourceObj, "updated-column", null);
                 if (sourceObj.has("query")) {
-                    String query = getStringValue(sourceObj, "query", null);
-                    sources.put(sourceId, new Query(query, primaryKeys, updatedColumn));
+                    String query = getStringValue(sourceObj, "query");
+                    String since = getStringValue(sourceObj, "since", null);
+                    sources.put(sourceId, new Query(query, since, primaryKeys, updatedColumn));
                 } else {
                     sources.put(sourceId, new Table(sourceId, primaryKeys, updatedColumn));
                 }
             }
         }
         return new DataSystem(ds, sources);
+    }
+
+    private static String getStringValue(JsonObject jo, String key) {
+        if (jo.has(key)) {
+            return jo.getAsJsonPrimitive(key).getAsString();
+        } else {
+            throw new RuntimeException("Missing '" + key + "' property in " + jo);
+        }
     }
 
     private static String getStringValue(JsonObject jo, String key, String defaultValue) {

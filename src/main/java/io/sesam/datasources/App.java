@@ -14,7 +14,9 @@ public class App {
     static Logger log = LoggerFactory.getLogger(App.class);
 
     public static void main(String[] args) throws Exception {
-        Mapper mapper = Mapper.load(args[0]);
+        String configurationFile = args[0];
+        log.info("Loading configuration from: " + configurationFile);
+        Mapper mapper = Mapper.load(configurationFile);
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -24,16 +26,19 @@ public class App {
             }   
         }); 
 
-        Spark.get("/:system/:table", (req, res) -> {
+        Spark.get("/:system/:source", (req, res) -> {
             res.type("application/json; charset=utf-8");
-            String system = req.params("system");
-            String table = req.params("table");
+            String systemId = req.params("system");
+            String sourceId = req.params("source");
             String since = req.queryParams("since");
             
+            if (!mapper.isValidSource(systemId, sourceId)) {
+                Spark.halt(404, "Unknown system/source pair.\n");
+            }
             Writer writer = res.raw().getWriter();
             JsonWriter jsonWriter = new JsonWriter(writer);
             try {
-                mapper.writeEntities(jsonWriter, system, table, since);
+                mapper.writeEntities(jsonWriter, systemId, sourceId, since);
             } finally {
                 jsonWriter.flush();
             }
