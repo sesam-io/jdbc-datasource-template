@@ -1,7 +1,6 @@
 package io.sesam.datasources;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -11,7 +10,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +66,7 @@ public class DataSystem implements AutoCloseable {
                         colNames[i]  = rsmd.getColumnName(i+1);
                         colTypes[i]  = rsmd.getColumnType(i+1);
                         colIndexes.put(colNames[i], i+1);
-                        log.info("" + colNames[i] + " " + colTypes[i]);
+//                        log.info("" + colNames[i] + " " + colTypes[i]);
                     }
 
                     List<String> primaryKeys = source.getPrimaryKeys();
@@ -92,6 +90,7 @@ public class DataSystem implements AutoCloseable {
                         log.info("Updated: " + updatedColumn);
                     }
                     StringBuilder sb = new StringBuilder();
+                    jw.beginArray();
                     while (rs.next()) {
                         jw.beginObject();
 
@@ -112,6 +111,7 @@ public class DataSystem implements AutoCloseable {
                         writeRow(jw, colNames, colTypes, rs);
                         jw.endObject();
                     }
+                    jw.endArray();
                 } finally {
                     rs.close();
                 }

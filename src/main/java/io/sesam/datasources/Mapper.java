@@ -49,9 +49,7 @@ public class Mapper implements AutoCloseable {
     public void writeEntities(JsonWriter jw, String systemId, String sourceId, String since) throws SQLException, IOException {
         DataSystem system = this.systems.get(systemId);
         assert system != null;
-        jw.beginArray();
         system.writeEntities(jw, sourceId, since);
-        jw.endArray();
     }
     
     public static Mapper load(String filename) throws Exception {
@@ -80,6 +78,8 @@ public class Mapper implements AutoCloseable {
         String username = getStringValue(systemObj, "username", null);
         String password = getStringValue(systemObj, "password", null);
         HikariConfig config = new HikariConfig();
+        config.setInitializationFailFast(false);
+        config.setConnectionTimeout(5000);
         config.setJdbcUrl(jdbcUrl);
         if (username != null) {
             config.setUsername(username);

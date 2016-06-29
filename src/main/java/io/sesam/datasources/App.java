@@ -1,5 +1,6 @@
 package io.sesam.datasources;
 
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import org.slf4j.Logger;
@@ -35,18 +36,16 @@ public class App {
             if (!mapper.isValidSource(systemId, sourceId)) {
                 Spark.halt(404, "Unknown system/source pair.\n");
             }
-            Writer writer = res.raw().getWriter();
-            JsonWriter jsonWriter = new JsonWriter(writer);
             try {
+                Writer writer = new OutputStreamWriter(res.raw().getOutputStream(), "utf-8");
+                JsonWriter jsonWriter = new JsonWriter(writer);
                 mapper.writeEntities(jsonWriter, systemId, sourceId, since);
-            } finally {
                 jsonWriter.flush();
+            } catch (Exception e) {
+                log.error("Got exception", e);
+                Spark.halt(500);
             }
             return "";
-        });
-        
-        Spark.exception(Exception.class, (exception, request, response) -> {
-            log.error("Got exception", exception);
         });
     }
 
