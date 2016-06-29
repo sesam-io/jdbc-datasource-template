@@ -55,14 +55,12 @@ Next, open the H2 Web Console. See actual link above. Enter the data provided be
 .. image:: images/h2-login.png
     :width: 800px
     :align: center
-    :alt: H2 database login page
 
 Now you should be logged in and you should see the H2 Web Console:
 
 .. image:: images/h2-console.png
     :width: 800px
     :align: center
-    :alt: H2 database login page
 
 Next we'll create the ``everything1`` database table and add two rows to it. Paste the DDL and SQL statements below into the textarea and click the ``Run`` button.
 
@@ -144,7 +142,6 @@ You should now be able to see that there is data in the ``everything1`` table:
 .. image:: images/h2-data.png
     :width: 800px
     :align: center
-    :alt: H2 database login page
 
 Running the JDBC proxy service
 ------------------------------
@@ -240,6 +237,60 @@ The service listens on port 4567. JSON entities can be retrieved from 'http://lo
       }
   ]
 
+Loading the data into Sesam
+---------------------------
+
+Now that the ``everything1`` table is exposed as JSON data we can consume it into Sesam.
+
+In the project directory there is a Sesam configuration file `sesam.conf.json <https://github.com/sesam-io/jdbc-datasource-template/blob/master/sesam.conf.json>`_ that can be used for this purpose. The configuration file contains a system and a pipe definition and looks like this:
+
+::
+
+  [
+      {
+          "_id": "h2test",
+          "type": "system:url",
+          "base_url": "http://YOUR-IP:4567/"
+      },
+      {
+          "_id": "everything1",
+          "type": "pipe",
+          "source": {
+              "type": "json",
+              "system": "h2test",
+              "url": "h2test/everything1"
+          }
+      }
+  ]
+
+Replace the ``YOUR-IP`` token with the name or IP of your JDBC proxy service. Then use the ``sesam`` client tool to load it into Sesam:
+
+::
+
+  $ sesam import sesam.conf.json
+  Read 2 config entities from these config-files:
+    sesam.conf.json
+
+In the `Sesam Management Studio <http://localhost:9042/gui#/pipes>`_ you can now see that the ``everything1`` pipe has been installed and is running:
+
+.. image:: images/sesam-ms-pipes.png
+    :width: 800px
+    :align: center
+
+When the pipe runs the ``everything1`` dataset is created:
+
+.. image:: images/sesam-ms-datasets.png
+    :width: 800px
+    :align: center
+
+The ``everything1`` dataset should now contain entities for the two rows in the database table:
+
+.. image:: images/sesam-ms-dataset.png
+    :width: 800px
+    :align: center
+
+Any changes you make to the database table will now be automatically reflected in the ``everything1`` dataset.
+
 Docker
 ------
 
@@ -277,3 +328,4 @@ You can then start a Docker container using it like this:
   [Thread-1] INFO org.eclipse.jetty.server.Server - jetty-9.3.z-SNAPSHOT
   [Thread-1] INFO org.eclipse.jetty.server.ServerConnector - Started ServerConnector@2f6503f1{HTTP/1.1,[http/1.1]}{0.0.0.0:4567}
   [Thread-1] INFO org.eclipse.jetty.server.Server - Started @949ms
+

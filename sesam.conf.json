@@ -1,0 +1,16 @@
+[
+    {
+        "_id": "h2test",
+        "type": "system:url",
+        "base_url": "http://YOUR-IP:4567/"
+    },
+    {
+        "_id": "everything1",
+        "type": "pipe",
+        "source": {
+            "type": "json",
+            "system": "h2test",
+            "url": "h2test/everything1"
+        }
+    }
+]

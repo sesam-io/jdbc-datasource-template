@@ -1,11 +1,11 @@
 {
     "h2test": {
-        "jdbc-url": "jdbc:h2:tcp://10.4.100.12:9101/~/h2test",
+        "jdbc-url": "jdbc:h2:tcp://192.168.1.89:9101/~/h2test",
         "username": "sa",
         "sources": {
             "everything1": {
                 "query": "select * from everything1",
-                "since": "where t_timestamp > ${since}",
+                "since": "where T_TIMESTAMP > ${since}",
                 "updated-column": "T_TIMESTAMP",
                 "primary-key": ["T_IDENTITY", "T_INT"]
             }
